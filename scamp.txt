@@ -15,14 +15,14 @@ REF_SERVER         vizier.cfa.harvard.edu
                                        # vizier.china-vo.org,
                                        # vizier.cfa.harvard.edu and
                                        # viziersaao.chpc.ac.za
-ASTREF_CATALOG         TYCHO-2        # NONE,FILE,USNO-A2,USNO-B1,GSC-2.3,
+ASTREF_CATALOG         UCAC-4        # NONE,FILE,USNO-A2,USNO-B1,GSC-2.3,
                                        # TYCHO-2,UCAC-4,URAT-1,NOMAD-1,PPMX,
                                        # CMC-15,2MASS,DENIS-3,SDSS-R9,SDSS-R12,
                                        # IGSL,GAIA-DR1,GAIA-DR2,PANSTARRS-1,
                                        # or ALLWISE
 ASTREF_BAND            DEFAULT         # Photom. band for astr.ref.magnitudes
                                        # or DEFAULT, BLUEST, or REDDEST
-ASTREFMAG_LIMITS       -99.0,7.0      # Select magnitude range in ASTREF_BAND
+ASTREFMAG_LIMITS       -99.0,8.0      # Select magnitude range in ASTREF_BAND
 SAVE_REFCATALOG        Y               # Save ref catalogs in FITS-LDAC format?
 REFOUT_CATPATH         .               # Save path for reference catalogs
  
@@ -51,7 +51,7 @@ MOSAIC_TYPE            UNCHANGED       # UNCHANGED, SAME_CRVAL, SHARE_PROJAXIS,
  
 #---------------------------- Cross-identification ----------------------------
  
-CROSSID_RADIUS         20.0             # Cross-id initial radius (arcsec)
+CROSSID_RADIUS         40.0             # Cross-id initial radius (arcsec)
  
 #---------------------------- Astrometric solution ----------------------------
  
