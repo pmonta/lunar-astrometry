@@ -23,7 +23,7 @@ ASTREF_CATALOG         UCAC-4        # NONE,FILE,USNO-A2,USNO-B1,GSC-2.3,
 ASTREF_BAND            DEFAULT         # Photom. band for astr.ref.magnitudes
                                        # or DEFAULT, BLUEST, or REDDEST
 ASTREFMAG_LIMITS       -99.0,8.0      # Select magnitude range in ASTREF_BAND
-SAVE_REFCATALOG        Y               # Save ref catalogs in FITS-LDAC format?
+SAVE_REFCATALOG        N               # Save ref catalogs in FITS-LDAC format?
 REFOUT_CATPATH         .               # Save path for reference catalogs
  
 #--------------------------- Merged output catalogs ---------------------------
@@ -86,7 +86,7 @@ PHOTFLUXERR_KEY        FLUXERR_AUTO    # Catalog parameter for the flux error
 SN_THRESHOLDS          6.0,30.0      # S/N thresholds (in sigmas) for all and
                                        # high-SN sample
 FWHM_THRESHOLDS        0.0,100.0       # FWHM thresholds (in pixels) for sources
-ELLIPTICITY_MAX        0.9             # Max. source ellipticity
+ELLIPTICITY_MAX        0.5             # Max. source ellipticity
 FLAGS_MASK             0x00f0          # Global rejection mask on SEx FLAGS
  
 #------------------------------- WCS headers ----------------------------------

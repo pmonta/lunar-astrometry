@@ -31,22 +31,26 @@ ldac2xylist.py predistort.cat predistort.xylist
 
 # initial astrometry.net solve-field
 
-#fixme: don't hardcode the image size and scale?
-solve-field --no-plots --overwrite --x-column XWIN_IMAGE --y-column YWIN_IMAGE --sort-column FLUX_AUTO --width 3283 --height 3283 --scale-low 17 --scale-high 22 --scale-units arcsecperpix --no-tweak --crpix-center predistort.xylist
-
-# save the initial WCS
-
-mv predistort.xylist.wcs init.wcs
-cp predistort.xylist predistort2.xylist
+#fixme: don't hardcode the image size and scale?  include approximate scale (or system focal length) in metadata file?
+solve-field --no-plots --overwrite --dir an1 \
+  --x-column XWIN_IMAGE --y-column YWIN_IMAGE --sort-column FLUX_AUTO \
+  --width 3283 --height 3283 --scale-low 17 --scale-high 22 --scale-units arcsecperpix \
+  --no-tweak --crpix-center \
+  predistort.xylist
 
 # second call to solve-field, to refine the WCS using maximum number of matched sources
 
 #fixme: don't hardcode the image size and scale?
-solve-field --verify init.wcs --no-plots --overwrite --x-column XWIN_IMAGE --y-column YWIN_IMAGE --sort-column FLUX_AUTO --width 3283 --height 3283 --scale-low 17 --scale-high 22 --scale-units arcsecperpix --tweak-order 1 --crpix-center predistort2.xylist
+#fixme: use *.axy rather than *.xylist?
+solve-field --verify an1/predistort.xylist.wcs --no-plots --overwrite --dir an2 \
+  --x-column XWIN_IMAGE --y-column YWIN_IMAGE --sort-column FLUX_AUTO \
+  --width 3283 --height 3283 --scale-low 17 --scale-high 22 --scale-units arcsecperpix \
+  --no-tweak --crpix-center \
+  predistort.xylist
 
 # extract the WCS header
 
-fitshdr predistort2.xylist.wcs >temp3.ahead
+fitshdr an2/predistort.xylist.wcs >temp3.ahead
 
 # make a symbolic link to the predistorted catalog
 
