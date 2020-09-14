@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # Estimate Moon's position on an image with Moon and stars
 #
 # Peter Monta, August 2020
@@ -74,7 +76,8 @@ def skyfield_moon_radius(t,location):
 # position of moon from ephemeris
 
 def skyfield_moon_ra_dec(t,location):
-  d = location.at(t).observe(moon).apparent()
+#  d = location.at(t).observe(moon).apparent()
+  d = location.at(t).observe(moon)
   ra, dec, distance = d.radec()
   return ra._degrees, dec.degrees
 
@@ -127,9 +130,8 @@ def moon_initial(img,t,location,plate_scale,moon_radius,sun_position_angle):
 
 # intensity along lunar limb
 
-def edge(img,c,r):
-# fixme: use only 180 degrees of limb
-  theta = np.arange(0,360,1.0)
+def edge(img,c,r,sun_position_angle):
+  theta = np.arange(sun_position_angle-90,sun_position_angle+90,1.0)
   a = np.deg2rad(theta)
   inds = c[1]+r*np.sin(a), c[0]+r*np.cos(a)
   e = scipy.ndimage.map_coordinates(img,inds,order=3,prefilter=False)
@@ -137,19 +139,18 @@ def edge(img,c,r):
 
 # optimizer metric: difference between edge(r) and edge(r+dr)
 
-def metric(c,img,moon_radius_pixels):
+def metric(c,img,moon_radius_pixels,sun_position_angle):
   p = (c[0],c[1])
   r = moon_radius_pixels
-  dr = 0.6
-  e1 = edge(img,p,r-dr/2)
-  e2 = edge(img,p,r+dr/2)
+  dr = 0.5
+  e1 = edge(img,p,r-dr/2,sun_position_angle)
+  e2 = edge(img,p,r+dr/2,sun_position_angle)
   return -(e1-e2)
 
 # fine-tune the Moon's position with a metric based on contrast near the limb
 
-def moon_fine(img,x,y,plate_scale,moon_radius):
+def moon_fine(img,x,y,plate_scale,moon_radius,sun_position_angle):
   moon_radius_pixels = moon_radius*3600/plate_scale
-  moon_radius_pixels += 0.4
   x0 = (x-1,y-1)
   simplex_size = 40.0/plate_scale
   initial_simplex = (
@@ -157,7 +158,29 @@ def moon_fine(img,x,y,plate_scale,moon_radius):
     (x0[0]+simplex_size,x0[1]),
     (x0[0],x0[1]+simplex_size)
   )
-  res = scipy.optimize.minimize(metric,x0,method='Nelder-Mead',args=(img,moon_radius_pixels),options={'xatol':0.0001,'initial_simplex':initial_simplex})
+  res = scipy.optimize.minimize(metric,x0,method='Nelder-Mead',args=(img,moon_radius_pixels,sun_position_angle),options={'xatol':0.0001,'initial_simplex':initial_simplex})
+  return res.x[0]+1, res.x[1]+1
+
+def metric_r(c,img,sun_position_angle):
+  p = (c[0],c[1])
+  r = c[2]
+  dr = 0.5
+  e1 = edge(img,p,r-dr/2,sun_position_angle)
+  e2 = edge(img,p,r+dr/2,sun_position_angle)
+  return -(e1-e2)
+
+def moon_fine_r(img,x,y,plate_scale,moon_radius,sun_position_angle):
+  moon_radius_pixels = moon_radius*3600/plate_scale
+  x0 = (x-1,y-1,moon_radius_pixels)
+  simplex_size = 40.0/plate_scale
+  moon_radius_scale = 20.0/plate_scale
+  initial_simplex = (
+    (x0[0],x0[1],moon_radius_pixels),
+    (x0[0]+simplex_size,x0[1],moon_radius_pixels),
+    (x0[0],x0[1]+simplex_size,moon_radius_pixels),
+    (x0[0],x0[1],moon_radius_pixels+moon_radius_scale)
+  )
+  res = scipy.optimize.minimize(metric_r,x0,method='Nelder-Mead',args=(img,sun_position_angle),options={'xatol':0.0001,'initial_simplex':initial_simplex})
   return res.x[0]+1, res.x[1]+1
 
 # call wcstools's xy2sky to translate pixels to equatorial coordinates; astropy doesn't handle SCAMP's TPV
@@ -243,11 +266,12 @@ plate_scale = fits_plate_scale(image_filename)
 img = fits.getdata(image_filename).astype('float')
 
 x,y = moon_initial(img,t,location,plate_scale,moon_radius,sun_position_angle)
-x,y = moon_fine(img,x,y,plate_scale,moon_radius)
+#x,y = moon_fine(img,x,y,plate_scale,moon_radius,sun_position_angle)
+x,y = moon_fine_r(img,x,y,plate_scale,moon_radius,sun_position_angle)
 
 xpd,ypd = sip.sip(sip_filename,x,y)
 ra_est, dec_est = xy2sky(image_filename,xpd,ypd)
 
 xi, eta = project(ra_true,dec_true,ra_est,dec_est)
 
-print("%s %f %f %f %f %.3f %.3f" % (image_filename, ra_true, dec_true, ra_est, dec_est, 3600*xi, 3600*eta))
+print("%12s %12f %12f %12f %12f %8.3f %8.3f" % (image_filename, ra_true, dec_true, ra_est, dec_est, 3600*xi, 3600*eta))
